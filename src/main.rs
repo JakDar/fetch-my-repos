@@ -5,7 +5,7 @@ mod integration {
 }
 
 mod config;
-mod repo_list;
+mod io;
 
 use quicli::prelude::*;
 use structopt::StructOpt;
@@ -26,15 +26,30 @@ fn main() -> std::io::Result<()> {
     let cfg = config::load().unwrap();
 
     let result = integration::gitlab::get_all(cfg.gitlab.unwrap(), &|x| {
-        repo_list::save_lines(x, repo_list::GITLAB_CACHE_TMP, /*append:*/ true)
+        io::save_lines(
+            x,
+            &io::filename_in_glclone_dir(io::GITLAB_CACHE_TMP),
+            /*append:*/ true,
+        )
     });
 
+    let _ = std::fs::create_dir(io::filename_in_glclone_dir(""));
+
     match result {
-        Ok(res) =>{
-            repo_list::save_lines(&res.repository_urls, repo_list::GITLAB_CACHE, false)?,
-            println!("Finished caching")
+        Ok(res) => {
+            println!("Finished caching");
+            io::save_lines(
+                &res.repository_urls,
+                &io::filename_in_glclone_dir(io::GITLAB_CACHE),
+                false,
+            )?;
+            std::fs::remove_file(io::filename_in_glclone_dir(io::GITLAB_CACHE_TMP))?
         }
-        Err(e) => eprintln!("Saving to {} failed with {:?}", repo_list::GITLAB_CACHE, e),
+        Err(e) => eprintln!(
+            "Saving to {} failed with {:?}",
+            io::filename_in_glclone_dir(io::GITLAB_CACHE),
+            e
+        ),
     };
-    panic!()
+    Ok(())
 }

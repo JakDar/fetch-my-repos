@@ -3,7 +3,7 @@ use reqwest;
 use serde_json::Value;
 
 const API_URL: &str = "https://gitlab.com/api/v4";
-const PER_PAGE: i32 = 4;
+const PER_PAGE: i32 = 100;
 
 #[derive(Debug)]
 pub struct CrawlResult {
@@ -20,6 +20,7 @@ pub fn get_all(
     let mut links_acc: Vec<String> = vec![];
 
     let mut first = get_page(&config, 1)?;
+    println!("Processed page 1/{}", first.total_pages); // FIXME: - use verbosity
 
     let _ = save_batch(&first.repository_urls);
 
@@ -29,7 +30,7 @@ pub fn get_all(
         let mut crawled_page = get_page(&config, page)?;
         let _ = save_batch(&crawled_page.repository_urls);
 
-        println!("{} out of {}", page, first.total_pages); // FIXME: - use verbosity
+        println!("Processed page {}/{}", page, first.total_pages); // FIXME: - use verbosity
         links_acc.append(&mut crawled_page.repository_urls);
     }
 
