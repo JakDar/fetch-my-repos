@@ -37,7 +37,7 @@ pub fn get_all(
 fn get_page(config: &GithubConfig, page: i32) -> Result<CrawlResult, CrawlError> {
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
-        "Accept",
+        header::ACCEPT,
         header::HeaderValue::from_str("application/vnd.github.v3+json").unwrap(),
     );
 

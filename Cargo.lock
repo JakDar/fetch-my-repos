@@ -384,8 +384,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "gclone"
-version = "0.0.0"
+name = "gclone-fetch"
+version = "0.0.1"
 dependencies = [
  "quicli 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.24 (registry+https://github.com/rust-lang/crates.io-index)",

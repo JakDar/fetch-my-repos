@@ -35,7 +35,7 @@ pub fn get_all(
 fn fetch_page(url: &str, token: &String) -> Result<CrawlResult, CrawlError> {
     let mut headers = reqwest::header::HeaderMap::new();
     headers.insert(
-        "Authorization",
+        header::AUTHORIZATION,
         header::HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
     );
 
