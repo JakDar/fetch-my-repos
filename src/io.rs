@@ -10,7 +10,7 @@ pub fn save_lines(lines: &Vec<String>, filename: &str, append: bool) -> std::io:
             .open(filename)?
     } else {
         OpenOptions::new()
-            .create_new(true)
+            .create(true)
             .write(true)
             .open(filename)?
     };
@@ -23,8 +23,8 @@ pub fn save_lines(lines: &Vec<String>, filename: &str, append: bool) -> std::io:
     Ok(())
 }
 
-pub fn filename_in_glclone_dir(filename: &str) -> String {
-    format!("{}/.glclone/{}", var("HOME").unwrap(), filename)
+pub fn filename_in_gclone_dir(filename: &str) -> String {
+    format!("{}/.gclone/{}", var("HOME").unwrap(), filename)
 }
 
 pub const GITLAB_CACHE: &str = "gitlab-cache";

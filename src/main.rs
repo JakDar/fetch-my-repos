@@ -48,13 +48,13 @@ fn main() -> std::io::Result<()> {
     let (tmp_cache, cache) = match &provider {
         Provider::Bitbucket => (io::BITBUCKET_CACHE_TMP, io::BITBUCKET_CACHE),
         Provider::Gitlab => (io::GITLAB_CACHE_TMP, io::GITLAB_CACHE),
-        Provider::Github=> (io::GITHUB_CACHE_TMP, io::GITHUB_CACHE),
+        Provider::Github => (io::GITHUB_CACHE_TMP, io::GITHUB_CACHE),
     };
 
     let save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()> = &|x| {
         io::save_lines(
             x,
-            &io::filename_in_glclone_dir(tmp_cache),
+            &io::filename_in_gclone_dir(tmp_cache),
             /*append:*/ true,
         )
     };
@@ -65,17 +65,17 @@ fn main() -> std::io::Result<()> {
         Provider::Github => integration::github::get_all(&cfg.github.unwrap(), save_batch),
     };
 
-    let _ = std::fs::create_dir(io::filename_in_glclone_dir(""));
+    let _ = std::fs::create_dir(io::filename_in_gclone_dir(""));
 
     match result {
         Ok(res) => {
             println!("Finished caching");
-            io::save_lines(&res, &io::filename_in_glclone_dir(cache), false)?;
-            std::fs::remove_file(io::filename_in_glclone_dir(tmp_cache))?
+            io::save_lines(&res, &io::filename_in_gclone_dir(cache), false)?;
+            std::fs::remove_file(io::filename_in_gclone_dir(tmp_cache))?
         }
         Err(e) => eprintln!(
             "Saving to {} failed with {:?}",
-            io::filename_in_glclone_dir(cache),
+            io::filename_in_gclone_dir(cache),
             e
         ),
     };
