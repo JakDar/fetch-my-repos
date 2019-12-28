@@ -148,6 +148,7 @@ function run_arg() {
 }
 
 #RUN
+mkdir -p $home_dir
 case $# in
 0) run ;;
 1) run_arg "$1" ;;

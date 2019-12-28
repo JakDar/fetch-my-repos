@@ -37,7 +37,6 @@ pub enum LoadError {
 }
 
 pub fn load() -> Result<Config, LoadError> {
-    // FIXME:bcm - generic
     let filename = "/home/owner/.private/glclone.json";
 
     let file_result: Result<String, LoadError> = match fs::read_to_string(filename) {
@@ -45,9 +44,9 @@ pub fn load() -> Result<Config, LoadError> {
         _error => Err(LoadError::FileNotFound),
     };
 
-    let foo = file_result?;
+    let file_content = file_result?;
 
-    match serde_json::from_str::<Config>(&foo) {
+    match serde_json::from_str::<Config>(&file_content) {
         Ok(s) => Ok(s),
         _error => Err(LoadError::ParseError),
     }

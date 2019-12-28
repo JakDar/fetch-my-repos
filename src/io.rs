@@ -9,10 +9,7 @@ pub fn save_lines(lines: &Vec<String>, filename: &str, append: bool) -> std::io:
             .create(true)
             .open(filename)?
     } else {
-        OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(filename)?
+        OpenOptions::new().create(true).write(true).open(filename)?
     };
 
     for line in lines.iter() {

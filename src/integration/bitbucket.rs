@@ -106,8 +106,8 @@ fn get_token(config: &BitbucketConfig) -> Result<String, CrawlError> {
     payload.insert("username", &config.app_id);
     payload.insert("password", &config.app_password);
 
-    let ala = &"client_credentials".to_owned(); // TODO:bcm  clean
-    payload.insert("grant_type", ala);
+    let credentials_grant = &"client_credentials".to_owned();
+    payload.insert("grant_type", credentials_grant);
 
     let http_result = client
         .post("https://bitbucket.org/site/oauth2/access_token")

@@ -13,7 +13,6 @@ pub struct CrawlResult {
     pub repository_urls: Vec<String>,
 }
 
-// REVIEW make save_lines a callback / function
 pub fn get_all(
     config: &GitlabConfig,
     save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()>,
@@ -35,9 +34,7 @@ pub fn get_all(
         links_acc.append(&mut crawled_page.repository_urls);
     }
 
-    Ok(
-        links_acc,
-    )
+    Ok(links_acc)
 }
 
 fn get_page(config: &GitlabConfig, page: i32) -> Result<CrawlResult, CrawlError> {

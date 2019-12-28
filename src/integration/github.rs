@@ -12,7 +12,6 @@ pub struct CrawlResult {
     pub repository_urls: Vec<String>,
 }
 
-// REVIEW make save_lines a callback / function
 pub fn get_all(
     config: &GithubConfig,
     save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()>,

@@ -13,7 +13,6 @@ use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 struct Cli {
-    // REVIEW - maybe use clap with enums?
     /// Prodvider: gitlab(gl) / github(gh) / bitbucket(bb)
     provider: String,
     // Quick and easy logging setup you get for free with quicli
@@ -25,6 +24,11 @@ enum Provider {
     Github,
     Gitlab,
     Bitbucket,
+}
+
+fn other_error<T>(msg: &str) -> std::io::Result<T> {
+    eprintln!("{}", msg);
+    Err(std::io::Error::from(std::io::ErrorKind::Other))
 }
 
 fn main() -> std::io::Result<()> {
@@ -60,9 +64,27 @@ fn main() -> std::io::Result<()> {
     };
 
     let result = match &provider {
-        Provider::Bitbucket => integration::bitbucket::get_all(&cfg.bitbucket.unwrap(), save_batch),
-        Provider::Gitlab => integration::gitlab::get_all(&cfg.gitlab.unwrap(), save_batch),
-        Provider::Github => integration::github::get_all(&cfg.github.unwrap(), save_batch),
+        Provider::Bitbucket => {
+            let config = cfg
+                .bitbucket
+                .map(Ok)
+                .unwrap_or(other_error("Bitbucket config not found"));
+            integration::bitbucket::get_all(&config?, save_batch)
+        }
+        Provider::Gitlab => {
+            let config = cfg
+                .gitlab
+                .map(Ok)
+                .unwrap_or(other_error("Gitlab config not found"));
+            integration::gitlab::get_all(&config?, save_batch)
+        }
+        Provider::Github => {
+            let config = cfg
+                .github
+                .map(Ok)
+                .unwrap_or(other_error("Gitlab config not found"));
+            integration::github::get_all(&config?, save_batch)
+        }
     };
 
     let _ = std::fs::create_dir(io::filename_in_gclone_dir(""));
