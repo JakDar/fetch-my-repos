@@ -1,4 +1,5 @@
 use crate::config::GitlabConfig;
+use crate::integration::common::*;
 use reqwest;
 use serde_json::Value;
 
@@ -14,9 +15,9 @@ pub struct CrawlResult {
 
 // REVIEW make save_lines a callback / function
 pub fn get_all(
-    config: GitlabConfig,
+    config: &GitlabConfig,
     save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()>,
-) -> Result<CrawlResult, CrawlError> {
+) -> Result<Vec<String>, CrawlError> {
     let mut links_acc: Vec<String> = vec![];
 
     let mut first = get_page(&config, 1)?;
@@ -34,24 +35,23 @@ pub fn get_all(
         links_acc.append(&mut crawled_page.repository_urls);
     }
 
-    Ok(CrawlResult {
-        repository_urls: links_acc,
-        total: first.total,
-        total_pages: first.total_pages,
-    })
+    Ok(
+        links_acc,
+    )
 }
 
 fn get_page(config: &GitlabConfig, page: i32) -> Result<CrawlResult, CrawlError> {
     let url = build_url(&config.token, page);
 
-    let mut ala: reqwest::Response = reqwest::get(&url).unwrap();
+    // FIXME: not unwrap
+    let mut response: reqwest::Response = reqwest::get(&url).unwrap();
 
-    let json = ala.json::<serde_json::Value>().unwrap();
+    let json = response.json::<serde_json::Value>().unwrap();
 
     let repository_urls = parse_result(json)?;
 
-    let total_pages = extract_i32_header(ala.headers(), "x-total-pages").unwrap_or(0);
-    let total = extract_i32_header(ala.headers(), "x-total").unwrap_or(0);
+    let total_pages = extract_i32_header(response.headers(), "x-total-pages").unwrap_or(0);
+    let total = extract_i32_header(response.headers(), "x-total").unwrap_or(0);
 
     Ok(CrawlResult {
         repository_urls,
@@ -64,11 +64,6 @@ fn extract_i32_header(headers: &reqwest::header::HeaderMap, name: &str) -> Optio
     let header = headers.get(name)?;
     let str_value = header.to_str().ok()?;
     str_value.parse::<i32>().ok()
-}
-
-#[derive(Debug)]
-pub enum CrawlError {
-    ParseError,
 }
 
 fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {

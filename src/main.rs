@@ -1,5 +1,6 @@
 mod integration {
-    mod bitbucket;
+    pub mod bitbucket;
+    pub mod common;
     mod github;
     pub mod gitlab;
 }
@@ -20,36 +21,64 @@ struct Cli {
     verbosity: Verbosity,
 }
 
+enum Provider {
+    Github,
+    Gitlab,
+    Bitbucket,
+}
+
 fn main() -> std::io::Result<()> {
-    // let args = Cli::from_args();
-    // println!("{}", args.provider);
+    //TODO:Bcm - use logger and verbosity intead of println
+    let args = Cli::from_args();
+    let provider_string: String = args.provider;
+
+    let provider = match provider_string.as_ref() {
+        "gh" | "github" => Ok(Provider::Github),
+        "bb" | "bitbucket" => Ok(Provider::Bitbucket),
+        "gl" | "gitlab" => Ok(Provider::Gitlab),
+        other => {
+            eprintln!("Unknown provider {}", other);
+            Err(std::io::Error::from(std::io::ErrorKind::Other))
+        }
+    }?;
+
+    // TODO:bcm - not unwrap
     let cfg = config::load().unwrap();
 
-    let result = integration::gitlab::get_all(cfg.gitlab.unwrap(), &|x| {
+    let (tmp_cache, cache) = match &provider {
+        Provider::Bitbucket => (io::BITBUCKET_CACHE_TMP, io::BITBUCKET_CACHE),
+        Provider::Gitlab => (io::GITLAB_CACHE_TMP, io::GITLAB_CACHE),
+        _ => panic!(""),
+    };
+
+    let save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()> = &|x| {
         io::save_lines(
             x,
-            &io::filename_in_glclone_dir(io::GITLAB_CACHE_TMP),
+            &io::filename_in_glclone_dir(tmp_cache),
             /*append:*/ true,
         )
-    });
+    };
+
+    let result = match &provider {
+        Provider::Bitbucket => integration::bitbucket::get_all(&cfg.bitbucket.unwrap(), save_batch),
+        Provider::Gitlab => integration::gitlab::get_all(&cfg.gitlab.unwrap(), save_batch),
+        _ => panic!(""),
+    };
 
     let _ = std::fs::create_dir(io::filename_in_glclone_dir(""));
 
     match result {
         Ok(res) => {
             println!("Finished caching");
-            io::save_lines(
-                &res.repository_urls,
-                &io::filename_in_glclone_dir(io::GITLAB_CACHE),
-                false,
-            )?;
-            std::fs::remove_file(io::filename_in_glclone_dir(io::GITLAB_CACHE_TMP))?
+            io::save_lines(&res, &io::filename_in_glclone_dir(cache), false)?;
+            std::fs::remove_file(io::filename_in_glclone_dir(tmp_cache))?
         }
         Err(e) => eprintln!(
             "Saving to {} failed with {:?}",
-            io::filename_in_glclone_dir(io::GITLAB_CACHE),
+            io::filename_in_glclone_dir(cache),
             e
         ),
     };
+
     Ok(())
 }

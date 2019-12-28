@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 use std::fs;
-use std::io::{BufRead, BufReader};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

@@ -29,5 +29,5 @@ pub fn filename_in_glclone_dir(filename: &str) -> String {
 
 pub const GITLAB_CACHE: &str = "gitlab-cache";
 pub const GITLAB_CACHE_TMP: &str = "gitlab-cache-tmp";
-// const BITBUCKET_CACHE: &str = "bitbucket-cache";
-// const BITBUCKET_CACHE_TMP: &str = "bitbucket-cache-tmp";
+pub const BITBUCKET_CACHE: &str = "bitbucket-cache";
+pub const BITBUCKET_CACHE_TMP: &str = "bitbucket-cache-tmp";
