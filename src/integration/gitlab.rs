@@ -87,7 +87,6 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
 }
 
 fn build_url(token: &str, page: i32) -> String {
-    // TODO:bcm page
     API_URL.to_owned()
         + "/projects/?"
         + "private_token="

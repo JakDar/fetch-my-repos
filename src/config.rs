@@ -18,9 +18,16 @@ pub struct GitlabConfig {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct GithubConfig {
+    pub user: String,
+    pub token: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub gitlab: Option<GitlabConfig>,
     pub bitbucket: Option<BitbucketConfig>,
+    pub github: Option<GithubConfig>,
 }
 
 #[derive(Debug)]

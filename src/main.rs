@@ -1,7 +1,7 @@
 mod integration {
     pub mod bitbucket;
     pub mod common;
-    mod github;
+    pub mod github;
     pub mod gitlab;
 }
 
@@ -48,7 +48,7 @@ fn main() -> std::io::Result<()> {
     let (tmp_cache, cache) = match &provider {
         Provider::Bitbucket => (io::BITBUCKET_CACHE_TMP, io::BITBUCKET_CACHE),
         Provider::Gitlab => (io::GITLAB_CACHE_TMP, io::GITLAB_CACHE),
-        _ => panic!(""),
+        Provider::Github=> (io::GITHUB_CACHE_TMP, io::GITHUB_CACHE),
     };
 
     let save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()> = &|x| {
@@ -62,7 +62,7 @@ fn main() -> std::io::Result<()> {
     let result = match &provider {
         Provider::Bitbucket => integration::bitbucket::get_all(&cfg.bitbucket.unwrap(), save_batch),
         Provider::Gitlab => integration::gitlab::get_all(&cfg.gitlab.unwrap(), save_batch),
-        _ => panic!(""),
+        Provider::Github => integration::github::get_all(&cfg.github.unwrap(), save_batch),
     };
 
     let _ = std::fs::create_dir(io::filename_in_glclone_dir(""));
