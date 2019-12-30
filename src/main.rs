@@ -65,24 +65,24 @@ fn main() -> std::io::Result<()> {
 
     let result = match &provider {
         Provider::Bitbucket => {
-            let config = cfg
-                .bitbucket
-                .map(Ok)
-                .unwrap_or(other_error("Bitbucket config not found"));
+            let config = match cfg.bitbucket {
+                Some(cfg) => Ok(cfg),
+                None => other_error("Bitbucket config not found"),
+            };
             integration::bitbucket::get_all(&config?, save_batch)
         }
         Provider::Gitlab => {
-            let config = cfg
-                .gitlab
-                .map(Ok)
-                .unwrap_or(other_error("Gitlab config not found"));
+            let config = match cfg.gitlab {
+                Some(cfg) => Ok(cfg),
+                None => other_error("Gitlab config not found"),
+            };
             integration::gitlab::get_all(&config?, save_batch)
         }
         Provider::Github => {
-            let config = cfg
-                .github
-                .map(Ok)
-                .unwrap_or(other_error("Gitlab config not found"));
+            let config = match cfg.github {
+                Some(cfg) => Ok(cfg),
+                None => other_error("Github config not found"),
+            };
             integration::github::get_all(&config?, save_batch)
         }
     };

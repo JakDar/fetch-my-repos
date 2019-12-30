@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::env::var;
 
 use std::fs;
 
@@ -37,8 +38,7 @@ pub enum LoadError {
 }
 
 pub fn load() -> Result<Config, LoadError> {
-    let filename = "/home/owner/.private/glclone.json";
-
+    let filename = format!("{}/.private/gclone.json", var("HOME").unwrap());
     let file_result: Result<String, LoadError> = match fs::read_to_string(filename) {
         Ok(s) => Ok(s),
         _error => Err(LoadError::FileNotFound),

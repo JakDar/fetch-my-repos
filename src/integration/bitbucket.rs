@@ -63,7 +63,10 @@ fn parse_response(value: Value) -> Result<CrawlResult, CrawlError> {
     };
     let repo_jsons = match &value["values"] {
         Value::Array(arr) => Ok(arr),
-        _ => Err(CrawlError::ParseError),
+        other => {
+            eprintln!("Values are not array. Found: {}", other);
+            Err(CrawlError::ParseError)
+        }
     }?;
 
     let mut repository_urls: Vec<String> = vec![];
