@@ -2,7 +2,6 @@
 
 set -e
 
-echo $0
 #DEFINITIONS
 name=$(basename "$0")
 case $name in
