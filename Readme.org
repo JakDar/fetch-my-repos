@@ -1,3 +1,6 @@
 * Fetch-Repo
 CLI for retrieving links from repositories from gitlab/github/bitbucket.
 Currently in early alpha stage.
+* Tasks
+- [ ] add config generation
+- [ ] add config instructions

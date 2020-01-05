@@ -1,3 +1,4 @@
+use quicli::prelude::*;
 use std::env::var;
 use std::fs::OpenOptions;
 use std::io::Write as IoWrite;
@@ -14,7 +15,7 @@ pub fn save_lines(lines: &Vec<String>, filename: &str, append: bool) -> std::io:
 
     for line in lines.iter() {
         if let Err(e) = writeln!(&mut file, "{}", &line) {
-            eprintln!("Couldn't write to file: {}", e);
+            warn!("Couldn't write to file: {}", e);
         }
     }
     Ok(())

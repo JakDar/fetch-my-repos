@@ -1,5 +1,6 @@
 use crate::config::GitlabConfig;
 use crate::integration::common::*;
+use quicli::prelude::*;
 use reqwest;
 use serde_json::Value;
 
@@ -20,7 +21,7 @@ pub fn get_all(
     let mut links_acc: Vec<String> = vec![];
 
     let mut first = get_page(&config, 1)?;
-    println!("Processed page 1/{}", first.total_pages); // FIXME: - use verbosity
+    info!("Processed page 1/{}", first.total_pages);
 
     let _ = save_batch(&first.repository_urls);
 
@@ -30,7 +31,7 @@ pub fn get_all(
         let mut crawled_page = get_page(&config, page)?;
         let _ = save_batch(&crawled_page.repository_urls);
 
-        println!("Processed page {}/{}", page, first.total_pages); // FIXME: - use verbosity
+        info!("Processed page {}/{}", page, first.total_pages);
         links_acc.append(&mut crawled_page.repository_urls);
     }
 
@@ -40,10 +41,21 @@ pub fn get_all(
 fn get_page(config: &GitlabConfig, page: i32) -> Result<CrawlResult, CrawlError> {
     let url = build_url(&config.token, page);
 
-    // FIXME: not unwrap
-    let mut response: reqwest::Response = reqwest::get(&url).unwrap();
+    let mut response: reqwest::Response = match reqwest::get(&url) {
+        Ok(res) => Ok(res),
+        Err(e) => {
+            error!("Fetching gitlab page {} failed due to {}", page, e);
+            Err(CrawlError::FetchError)
+        }
+    }?;
 
-    let json = response.json::<serde_json::Value>().unwrap();
+    let json = match response.json::<serde_json::Value>() {
+        Ok(res) => Ok(res),
+        Err(e) => {
+            error!("Parsing gitlab page {} failed due to {}", page, e);
+            Err(CrawlError::ParseError)
+        }
+    }?;
 
     let repository_urls = parse_result(json)?;
 
@@ -74,13 +86,12 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
         _ => Err(CrawlError::ParseError),
     });
 
-    // FIXME: is there Result.sequence?
-    let mut links: Vec<String> = vec![];
+    let links: Result<Vec<_>, _> = link_results
+        .into_iter()
+        .map(|r| r.map(|l| l.clone()))
+        .collect();
 
-    for res in link_results {
-        links.push(res?.clone());
-    }
-    Ok(links)
+    links
 }
 
 fn build_url(token: &str, page: i32) -> String {

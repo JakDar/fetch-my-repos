@@ -1,3 +1,4 @@
+use quicli::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::env::var;
@@ -34,11 +35,20 @@ pub struct Config {
 #[derive(Debug)]
 pub enum LoadError {
     FileNotFound,
+    HomeEnvNotFound,
     ParseError,
 }
 
 pub fn load() -> Result<Config, LoadError> {
-    let filename = format!("{}/.private/gclone.json", var("HOME").unwrap());
+    let home = match var("HOME") {
+        Ok(ok) => Ok(ok),
+        Err(e) => {
+            error!("HOME env not found, {}", e);
+            Err(LoadError::HomeEnvNotFound)
+        }
+    }?;
+
+    let filename = format!("{}/.private/gclone.json", home);
     let file_result: Result<String, LoadError> = match fs::read_to_string(filename) {
         Ok(s) => Ok(s),
         _error => Err(LoadError::FileNotFound),

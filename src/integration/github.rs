@@ -1,5 +1,6 @@
 use crate::config::GithubConfig;
 use crate::integration::common::*;
+use quicli::prelude::*;
 use reqwest;
 use reqwest::header;
 use serde_json::Value;
@@ -42,16 +43,31 @@ fn get_page(config: &GithubConfig, page: i32) -> Result<CrawlResult, CrawlError>
 
     let url = build_url(page);
 
-    // FIXME: not unwrap
     let client = reqwest::Client::new();
-    let mut response = client
+    let response_result = client
         .get(&url)
         .headers(headers)
         .basic_auth(&config.user, Some(&config.token))
-        .send()
-        .unwrap();
+        .send();
 
-    let json = response.json::<serde_json::Value>().unwrap();
+    let mut response = match response_result {
+        Ok(ok) => Ok(ok),
+        Err(e) => {
+            error!("Fetching github page {} failed due to {}", page, e);
+            Err(CrawlError::FetchError)
+        }
+    }?;
+
+    let json = match response.json::<serde_json::Value>() {
+        Ok(ok) => Ok(ok),
+        Err(e) => {
+            error!(
+                "Parsing response for github page {} failed due to {}",
+                page, e
+            );
+            Err(CrawlError::ParseError)
+        }
+    }?;
 
     let repository_urls = parse_result(json)?;
 
@@ -62,7 +78,7 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
     let obj_array = match &json {
         Value::Array(arr) => Ok(arr.clone()),
         other => {
-            eprintln!("Couldn't pares result as array: {:?}", other);
+            error!("Couldn't parse result as array: {:?}", other);
             Err(CrawlError::ParseError)
         }
     }?;
@@ -70,18 +86,17 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
     let link_results = obj_array.iter().map(|x| match &x["ssh_url"] {
         Value::String(url) => Ok(url),
         other => {
-            eprintln!("ssh_url not found, found {:?}", other);
+            error!("ssh_url not found, found {:?}", other);
             Err(CrawlError::ParseError)
         }
     });
 
-    // FIXME: is there Result.sequence?
-    let mut links: Vec<String> = vec![];
+    let links: Result<Vec<_>, _> = link_results
+        .into_iter()
+        .map(|r| r.map(|l| l.clone()))
+        .collect();
 
-    for res in link_results {
-        links.push(res?.clone());
-    }
-    Ok(links)
+    links
 }
 
 fn build_url(page: i32) -> String {

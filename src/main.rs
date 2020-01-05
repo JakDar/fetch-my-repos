@@ -27,13 +27,20 @@ enum Provider {
 }
 
 fn other_error<T>(msg: &str) -> std::io::Result<T> {
-    eprintln!("{}", msg);
+    error!("{}", msg);
     Err(std::io::Error::from(std::io::ErrorKind::Other))
 }
 
 fn main() -> std::io::Result<()> {
-    //TODO:Bcm - use logger and verbosity intead of println
     let args = Cli::from_args();
+    match args.verbosity.setup_env_logger("gclone-fetch") {
+        Ok(ok) => Ok(ok),
+        Err(e) => {
+            eprintln!("Logger setup failed with {:?}", e);
+            Err(std::io::Error::from(std::io::ErrorKind::Other))
+        }
+    }?;
+
     let provider_string: String = args.provider;
 
     let provider = match provider_string.as_ref() {
@@ -41,13 +48,18 @@ fn main() -> std::io::Result<()> {
         "bb" | "bitbucket" => Ok(Provider::Bitbucket),
         "gl" | "gitlab" => Ok(Provider::Gitlab),
         other => {
-            eprintln!("Unknown provider {}", other);
+            error!("Unknown provider {}", other);
             Err(std::io::Error::from(std::io::ErrorKind::Other))
         }
     }?;
 
-    // TODO:bcm - not unwrap
-    let cfg = config::load().unwrap();
+    let cfg = match config::load() {
+        Ok(config) => Ok(config),
+        Err(e) => {
+            error!("Cannot load config due to {:?}", e);
+            Err(std::io::Error::from(std::io::ErrorKind::Other))
+        }
+    }?;
 
     let (tmp_cache, cache) = match &provider {
         Provider::Bitbucket => (io::BITBUCKET_CACHE_TMP, io::BITBUCKET_CACHE),
@@ -55,9 +67,9 @@ fn main() -> std::io::Result<()> {
         Provider::Github => (io::GITHUB_CACHE_TMP, io::GITHUB_CACHE),
     };
 
-    let save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()> = &|x| {
+    let save_batch: &dyn Fn(&Vec<String>) -> std::io::Result<()> = &|lines| {
         io::save_lines(
-            x,
+            lines,
             &io::filename_in_gclone_dir(tmp_cache),
             /*append:*/ true,
         )
@@ -91,11 +103,11 @@ fn main() -> std::io::Result<()> {
 
     match result {
         Ok(res) => {
-            println!("Finished caching");
+            info!("Finished caching");
             io::save_lines(&res, &io::filename_in_gclone_dir(cache), false)?;
             std::fs::remove_file(io::filename_in_gclone_dir(tmp_cache))?
         }
-        Err(e) => eprintln!(
+        Err(e) => error!(
             "Saving to {} failed with {:?}",
             io::filename_in_gclone_dir(cache),
             e

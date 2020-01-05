@@ -1,5 +1,6 @@
 use crate::config::BitbucketConfig;
 use crate::integration::common::*;
+use quicli::prelude::*;
 use reqwest;
 use reqwest::header;
 use serde_json::Value;
@@ -64,7 +65,7 @@ fn parse_response(value: Value) -> Result<CrawlResult, CrawlError> {
     let repo_jsons = match &value["values"] {
         Value::Array(arr) => Ok(arr),
         other => {
-            eprintln!("Values are not array. Found: {}", other);
+            error!("Values are not array. Found: {}", other);
             Err(CrawlError::ParseError)
         }
     }?;
@@ -121,7 +122,7 @@ fn get_token(config: &BitbucketConfig) -> Result<String, CrawlError> {
     let typed_result = match http_result {
         Ok(e) => Ok(e),
         Err(e) => {
-            eprintln!("Falied http request for bitbucket token due to {}", e);
+            error!("Falied http request for bitbucket token due to {}", e);
             Err(CrawlError::FetchError)
         }
     };
@@ -130,7 +131,7 @@ fn get_token(config: &BitbucketConfig) -> Result<String, CrawlError> {
         match typed_result?.json::<serde_json::Value>() {
             Ok(r) => Ok(r),
             Err(e) => {
-                eprintln!("Falied http request for bitbucket token due to {}", e);
+                error!("Falied to decode token for bitbucket due to {}", e);
                 Err(CrawlError::ParseError)
             }
         };
