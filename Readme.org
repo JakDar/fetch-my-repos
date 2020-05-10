@@ -1,6 +1,25 @@
 * Fetch-Repo
 CLI for retrieving links from repositories from gitlab/github/bitbucket.
 Currently in early alpha stage.
+* Config
+  #+BEGIN_SRC json
+{
+  "bitbucket": {
+    "appId": "appId",
+    "appPassword": "appPassword",
+    "clientId": "clientId",
+    "clientSecret": "secret"
+  },
+  "gitlab": {
+    "token": "user"
+  },
+  "github": {
+    "user": "user",
+    "token": "token"
+  }
+}
+  #+END_SRC
+You can use one of providers without other just by not including them in config.
 * Tasks
 - [ ] add config generation
 - [ ] add config instructions
