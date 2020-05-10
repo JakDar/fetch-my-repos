@@ -58,6 +58,7 @@ fn get_page(config: &GithubConfig, page: i32) -> Result<CrawlResult, CrawlError>
         }
     }?;
 
+
     let json = match response.json::<serde_json::Value>() {
         Ok(ok) => Ok(ok),
         Err(e) => {
@@ -65,7 +66,7 @@ fn get_page(config: &GithubConfig, page: i32) -> Result<CrawlResult, CrawlError>
                 "Parsing response for github page {} failed due to {}",
                 page, e
             );
-            Err(CrawlError::ParseError)
+            Err(CrawlError::ParseError("Json parsing failed".to_owned()))
         }
     }?;
 
@@ -79,7 +80,7 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
         Value::Array(arr) => Ok(arr.clone()),
         other => {
             error!("Couldn't parse result as array: {:?}", other);
-            Err(CrawlError::ParseError)
+            Err(CrawlError::ParseError("Array parsing failed".to_owned()))
         }
     }?;
 
@@ -87,7 +88,7 @@ fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
         Value::String(url) => Ok(url),
         other => {
             error!("ssh_url not found, found {:?}", other);
-            Err(CrawlError::ParseError)
+            Err(CrawlError::ParseError("Url parsing failed".to_owned()))
         }
     });
 

@@ -60,9 +60,9 @@ function run_from_cache() {
 function do_cache_urls (){
 	if [ "$provider" = "all" ]
 	then
-		[ -f "$bitbucket_cache_file" ] || gclone-fetch bitbucket
-		[ -f "$gitlab_cache_file" ] || gclone-fetch gitlab
-		[ -f "$github_cache_file" ] || gclone-fetch github
+		gclone-fetch bitbucket
+		gclone-fetch gitlab
+		gclone-fetch github
 
 		cat "$bitbucket_cache_file" > "$cache_file"
 		cat "$gitlab_cache_file" >> "$cache_file"

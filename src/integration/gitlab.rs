@@ -53,7 +53,7 @@ fn get_page(config: &GitlabConfig, page: i32) -> Result<CrawlResult, CrawlError>
         Ok(res) => Ok(res),
         Err(e) => {
             error!("Parsing gitlab page {} failed due to {}", page, e);
-            Err(CrawlError::ParseError)
+            Err(CrawlError::ParseError("Response parsing failed".to_owned()))
         }
     }?;
 
@@ -78,12 +78,19 @@ fn extract_i32_header(headers: &reqwest::header::HeaderMap, name: &str) -> Optio
 fn parse_result(json: Value) -> Result<Vec<String>, CrawlError> {
     let obj_array = match &json {
         Value::Array(arr) => Ok(arr.clone()),
-        _ => Err(CrawlError::ParseError),
+        _ => {
+            error!("Gitlab responed with {:?} instead of json array", json);
+            Err(CrawlError::ParseError(
+                "Parsing gitlab response to json failed".to_owned(),
+            ))
+        }
     }?;
 
     let link_results = obj_array.iter().map(|x| match &x["ssh_url_to_repo"] {
         Value::String(url) => Ok(url),
-        _ => Err(CrawlError::ParseError),
+        _ => Err(CrawlError::ParseError(
+            "Getting ssh url from gitlab response failed".to_owned(),
+        )),
     });
 
     let links: Result<Vec<_>, _> = link_results

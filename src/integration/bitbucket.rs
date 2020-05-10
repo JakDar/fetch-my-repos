@@ -52,7 +52,7 @@ fn fetch_page(url: &str, token: &String) -> Result<CrawlResult, CrawlError> {
     let json = response
         .json::<Value>()
         .map(Ok)
-        .unwrap_or(Err(CrawlError::ParseError))?;
+        .unwrap_or(Err(CrawlError::ParseError("Couldnt parse response".to_owned())))?;
 
     parse_response(json)
 }
@@ -66,7 +66,7 @@ fn parse_response(value: Value) -> Result<CrawlResult, CrawlError> {
         Value::Array(arr) => Ok(arr),
         other => {
             error!("Values are not array. Found: {}", other);
-            Err(CrawlError::ParseError)
+            Err(CrawlError::ParseError("".to_owned()))
         }
     }?;
 
@@ -132,12 +132,12 @@ fn get_token(config: &BitbucketConfig) -> Result<String, CrawlError> {
             Ok(r) => Ok(r),
             Err(e) => {
                 error!("Falied to decode token for bitbucket due to {}", e);
-                Err(CrawlError::ParseError)
+                Err(CrawlError::ParseError("".to_owned()))
             }
         };
 
     match &token?["access_token"] {
         serde_json::Value::String(s) => Ok(s.to_owned()),
-        _ => Err(CrawlError::ParseError),
+        _ => Err(CrawlError::ParseError("".to_owned())),
     }
 }
