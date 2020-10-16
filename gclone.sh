@@ -2,6 +2,12 @@
 
 set -e
 
+if command -v sk >/dev/null; then
+	fuzzy_command=sk
+else
+	fuzzy_command=fzf
+fi
+
 #DEFINITIONS
 name=$(basename "$0")
 case $name in
@@ -16,9 +22,8 @@ ghclone)
 	;;
 *)
 	provider="all"
+	;;
 esac
-
-
 
 home_dir="$HOME/.gclone"
 cache_file="$home_dir/$provider-cache"
@@ -37,7 +42,6 @@ cron_interval_min="30"
 #                        (0-59)              (0-23)     (1-31)    (1-12 or Jan-Dec)  (0-6 or Sun-Sat)
 crontab_entry="   */$cron_interval_min          *          *                *                *  . \$HOME/.profile; $crontab_command"
 
-
 #FUCTIONS
 function exit_error() {
 	echo >&2 "$1"
@@ -45,10 +49,10 @@ function exit_error() {
 }
 
 function run_from_cache() {
-	repos_url=$(fzf -m <"$cache_file")
+	repos_url=$($fuzzy_command -m <"$cache_file")
 
 	for repo in $repos_url; do
-		repo_dir=$(echo "$repo" | awk -F'/' '{print $NF}'| sed 's/\.git//')
+		repo_dir=$(echo "$repo" | awk -F'/' '{print $NF}' | sed 's/\.git//')
 
 		git clone "$repo" --recursive
 		cd "$repo_dir"
@@ -57,16 +61,15 @@ function run_from_cache() {
 	done
 }
 
-function do_cache_urls (){
-	if [ "$provider" = "all" ]
-	then
+function do_cache_urls() {
+	if [ "$provider" = "all" ]; then
 		gclone-fetch bitbucket
 		gclone-fetch gitlab
 		gclone-fetch github
 
-		cat "$bitbucket_cache_file" > "$cache_file"
-		cat "$gitlab_cache_file" >> "$cache_file"
-		cat "$github_cache_file" >> "$cache_file"
+		cat "$bitbucket_cache_file" >"$cache_file"
+		cat "$gitlab_cache_file" >>"$cache_file"
+		cat "$github_cache_file" >>"$cache_file"
 	else
 		gclone-fetch $provider
 	fi

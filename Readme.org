@@ -23,3 +23,6 @@ You can use one of providers without other just by not including them in config.
 * Tasks
 - [ ] add config generation
 - [ ] add config instructions
+** TODO Migrate to ureq?
+  Reqwest uses tokio, it's theadpool, hyper and so on. I need just simple blocking http client. Maybe just toy with reducing bloat? 
+  https://github.com/algesten/ureq
