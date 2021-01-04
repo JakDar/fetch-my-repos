@@ -48,7 +48,8 @@ pub fn load() -> Result<Config, LoadError> {
         }
     }?;
 
-    let filename = format!("{}/.private/gclone.json", home);
+    // let filename = format!("{}/.private/gclone.json", home); TODO - make it configurable ;)
+    let filename = format!("{}/next/.private/gclone.json", home);
     let file_result: Result<String, LoadError> = match fs::read_to_string(filename) {
         Ok(s) => Ok(s),
         _error => Err(LoadError::FileNotFound),
